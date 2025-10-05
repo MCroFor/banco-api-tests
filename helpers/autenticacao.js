@@ -9,7 +9,7 @@ const obterToken = async (usuario, senha) => {
             'senha': senha
         })
 
-    return respostaLogin = body.token   
+    return respostaLogin.body.token   
 }
 
 module.exports = {
