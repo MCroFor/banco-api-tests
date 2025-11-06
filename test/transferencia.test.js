@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { expect } = require('chai')
+const { expect } = require('chai');
 require('dotenv').config()
 const { obterToken } = require('../helpers/autenticacao')
 const postTransferencias = require('../fixtures/postTransferencias.json')
@@ -24,6 +24,7 @@ describe('Transferencias', () => {
                 .send(bodyTransferencias)
                 
             expect(resposta.status).to.equal(201); 
+            expect(resposta.text).to.contain('Transferência realizada com sucesso.')
                       
 
         })
@@ -40,17 +41,71 @@ describe('Transferencias', () => {
                 
             expect(resposta.status).to.equal(422); 
         })
-    })
+
+        it('Deve retornar 401 quando o token não for enviado ou for inválido', async () => {
+            const bodyTransferencias = { ...postTransferencias };
+
+            const resposta = await request(process.env.BASE_URL)
+                .post('/transferencias')
+                .set('Content-Type', 'application/json')
+                // sem Authorization
+                .send(bodyTransferencias);
+
+            expect(resposta.status).to.equal(401);
+
+         })
+    
+
+        it('Deve retornar falha com 401 quando não for passado token e o valor da transferência for maior ou igual a R$5000', async () => {     
+            const bodyTransferencias = { ...postTransferencias}
+            bodyTransferencias.valor = 5000
+            bodyTransferencias.token = ""
+            
+            const resposta = await request(process.env.BASE_URL)
+                .post('/transferencias')
+                .set('Content-Type', 'application/json')
+                .set('Authorization', `Bearer ${token}`)
+                .send(bodyTransferencias)
+            expect(resposta.status).to.equal(401);
+            expect(resposta.error.text).to.contain('Autenticação necessária para transferências acima de R$5.000,00.')
+        })
+
+        it('Deve retornar falha com 401 quando passado token invalido e o valor da transferência for maior ou igual a R$5000', async () => {     
+            const bodyTransferencias = { ...postTransferencias}
+            bodyTransferencias.valor = 5000
+            bodyTransferencias.token = "123456789"
+            
+            const resposta = await request(process.env.BASE_URL)
+                .post('/transferencias')
+                .set('Content-Type', 'application/json')
+                .set('Authorization', `Bearer ${token}`)
+                .send(bodyTransferencias)
+            expect(resposta.status).to.equal(401);
+            expect(resposta.error.text).to.contain('Autenticação necessária para transferências acima de R$5.000,00.')
+        })
+
+        it('Deve retornar falha com 403 quando fornecido um token sem acesso permitido', async () => {     
+            const bodyTransferencias = { ...postTransferencias}
+
+            tokenAuthentication = await obterToken('junior.lima', '123456')
+            
+            const resposta = await request(process.env.BASE_URL)
+                .post('/transferencias')
+                .set('Content-Type', 'application/json')
+                .set('Authorization', `Bearer ${tokenAuthentication}`)
+                .send(bodyTransferencias)
+            expect(resposta.status).to.equal(403);
+            expect(resposta.error.text).to.contain('Acesso não permitido.')
+        })
+
 
     describe ('GET /transferencias/{id}', () => {
         it('Deve retornar sucesso com 200 e dados iguais ao registros de transfência contido no banco de dados quando o ID for válido', async () =>{
             const resposta = await request(process.env.BASE_URL)
                 .get('/transferencias/10')
                 .set('Authorization', `Bearer ${token}`)
-
-            console.log(resposta.status)
-            console.log(resposta.body) 
-            
+                       
+            console.log(resposta.body)
             expect(resposta.status).to.equal(200)
             expect(resposta.body.id).to.equal(10)
             expect(resposta.body.id).to.be.a('number')
@@ -71,4 +126,6 @@ describe('Transferencias', () => {
             expect(resposta.body.transferencias).to.have.length(10)
         })
     })
+})
+
 })
