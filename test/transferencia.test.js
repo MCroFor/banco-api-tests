@@ -105,7 +105,7 @@ describe('Transferencias', () => {
                 .get('/transferencias/11')
                 .set('Authorization', `Bearer ${token}`)
                        
-            console.log("==========>",resposta.body)
+
             expect(resposta.status).to.equal(200)
             expect(resposta.body.id).to.equal(11)
             expect(resposta.body.id).to.be.a('number')
