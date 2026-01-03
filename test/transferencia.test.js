@@ -98,17 +98,13 @@ describe('Transferencias', () => {
             expect(resposta.error.text).to.contain('Acesso não permitido.')
         })
 
-
+       
     describe ('GET /transferencias/{id}', () => {
         it('Deve retornar sucesso com 200 e dados iguais ao registros de transfência contido no banco de dados quando o ID for válido', async () =>{
             const resposta = await request(process.env.BASE_URL)
                 .get('/transferencias/11')
                 .set('Authorization', `Bearer ${token}`)
-                       
-<<<<<<< HEAD
-=======
-
->>>>>>> 15eb386c8001a74600524fde9f172e904d2107b2
+                    
             expect(resposta.status).to.equal(200)
             expect(resposta.body.id).to.equal(11)
             expect(resposta.body.id).to.be.a('number')

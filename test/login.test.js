@@ -28,6 +28,27 @@ describe('Login', () => {
                 .send(bodyLogin)            
             expect(resposta.status).to.equal(400);
         })
+
+        it ('Deve retornar 401 quando as credenciais de login forem inválidas', async () => {
+            const bodyLogin = {...postLogin}
+            bodyLogin.username = 'Mara'
+            bodyLogin.senha = '1234567'
+
+            const resposta = await request(process.env.BASE_URL)
+                .post('/login')
+                .set('Content-Type', 'application/json')
+                .send(bodyLogin)            
+            expect(resposta.status).to.equal(401);
+        })
+
+        it('Deve retornar 405 ao utilizar método não permitido no endpoint de login', async () => {
+            const resposta = await request(process.env.BASE_URL)
+                .get('/login') // método não permitido
+                .set('Content-Type', 'application/json');
+
+            expect(resposta.status).to.equal(405);
+        })
+
     })
 
 })
